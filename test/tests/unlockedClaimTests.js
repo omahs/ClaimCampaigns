@@ -9,7 +9,7 @@ const { v4: uuidv4, parse: uuidParse } = require('uuid');
 
 const unlockedTests = (params, delegating) => {
   let deployed, dao, a, b, c, d, e, token, claimContract, tokenDomain, claimDomain;
-  let amount, campaign, claimA, claimB, claimC, claimD, claimE, id;
+  let amount, campaign, claimA, claimB, claimC, claimD, claimE, id, treasury, feeAmount;
   it(`DAO creates an unlocked claim campaign`, async () => {
     deployed = await setup(params.decimals);
     dao = deployed.dao;
@@ -18,6 +18,8 @@ const unlockedTests = (params, delegating) => {
     c = deployed.c;
     d = deployed.d;
     e = deployed.e;
+    treasury = deployed.treasury;
+    feeAmount = BigInt(7) * BigInt(10 ** 15);
     token = delegating ? deployed.token : deployed.nvToken;
     tokenDomain = deployed.tokenDomain;
     claimDomain = deployed.claimDomain;
@@ -65,19 +67,21 @@ const unlockedTests = (params, delegating) => {
       root,
       delegating: false,
     };
-    await expect(claimContract.createUnlockedCampaign(id, campaign, BigInt(treevalues.length))).to.emit(
+    let treasuryBalance = BigInt(await ethers.provider.getBalance(treasury.address));
+    await expect(claimContract.createUnlockedCampaign(id, campaign, BigInt(treevalues.length), {value: feeAmount})).to.emit(
       claimContract,
       'CampaignStarted'
     );
     expect(await token.balanceOf(claimContract.target)).to.eq(amount);
     expect(await claimContract.usedIds(id)).to.eq(true);
+    expect(await ethers.provider.getBalance(claimContract.target)).to.eq(0);
+    let paidTreasury = BigInt(await ethers.provider.getBalance(treasury.address));
+    expect(paidTreasury).to.eq(treasuryBalance + feeAmount);
   });
   it('wallt A claims from the contract', async () => {
     let proof = getProof('./test/trees/tree.json', a.address);
-    let ethBalanceOfDao = BigInt(await ethers.provider.getBalance(dao.address));
-    let tx = await claimContract.connect(a).claim(id, proof, claimA, {value: C.E18_1});
-    let afterEthBalanceOfDao = BigInt(await ethers.provider.getBalance(dao.address));
-    expect(afterEthBalanceOfDao).to.eq(ethBalanceOfDao + (C.E18_1));
+    let treasuryBalance = BigInt(await ethers.provider.getBalance(treasury.address));
+    let tx = await claimContract.connect(a).claim(id, proof, claimA, {value: feeAmount});
     expect(tx).to.emit(token, 'Transfer').withArgs(claimContract.target, a.address, claimA);
     expect(tx)
       .to.emit(claimContract, 'UnlockedTokensClaimed')
@@ -85,10 +89,14 @@ const unlockedTests = (params, delegating) => {
     expect(await token.balanceOf(a.address)).to.eq(claimA);
     expect(await token.balanceOf(claimContract.target)).to.eq(amount - claimA);
     expect(await claimContract.claimed(id, a.address)).to.eq(true);
+    expect(await ethers.provider.getBalance(claimContract.target)).to.eq(0);
+    let paidTreasury = BigInt(await ethers.provider.getBalance(treasury.address));
+    expect(paidTreasury).to.eq(treasuryBalance + feeAmount);
   });
   it('wallet b claims from the contract, and if its delegating uses the delagating function', async () => {
     let proof = getProof('./test/trees/tree.json', b.address);
     let tx;
+    let treasuryBalance = BigInt(await ethers.provider.getBalance(treasury.address));
     if (delegating) {
       let expiry = BigInt(await time.latest()) + BigInt(60 * 60 * 24 * 7);
       const nonce = await token.nonces(b.address);
@@ -106,15 +114,18 @@ const unlockedTests = (params, delegating) => {
         r: delegationSignature.r,
         s: delegationSignature.s,
       };
-      tx = await claimContract.connect(b).claimAndDelegate(id, proof, claimB, b.address, delegationSig);
+      tx = await claimContract.connect(b).claimAndDelegate(id, proof, claimB, b.address, delegationSig, {value: feeAmount});
     } else {
-      tx = await claimContract.connect(b).claim(id, proof, claimB);
+      tx = await claimContract.connect(b).claim(id, proof, claimB, {value: feeAmount});
     }
     expect(tx).to.emit(token, 'Transfer').withArgs(claimContract.target, b.address, claimB);
     expect(tx)
       .to.emit(claimContract, 'UnlockedTokensClaimed')
       .withArgs(id, b.address, claimB, amount - claimB);
     expect(await token.balanceOf(b.address)).to.eq(claimB);
+    expect(await ethers.provider.getBalance(claimContract.target)).to.eq(0);
+    let paidTreasury = BigInt(await ethers.provider.getBalance(treasury.address));
+    expect(paidTreasury).to.eq(treasuryBalance + feeAmount);
   });
   it('dao claims from the contract on behalf of wallet c', async () => {
     let proof = getProof('./test/trees/tree.json', c.address);

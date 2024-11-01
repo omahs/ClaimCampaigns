@@ -6,7 +6,9 @@ const { unlockedTests, unlockedErrorTests } = require('./tests/unlockedClaimTest
 const { lockedTests, lockedErrorTests } = require('./tests/lockedClaimTests');
 const { vestingTests, vestingErrorTests } = require('./tests/vestingClaimTest');
 const { multiClaimTests } = require('./tests/multiClaimTests');
+const { multiClaimDelegateTests } = require('./tests/multiClaimDelegateTests');
 const flashAttackTests = require('./tests/flashAttackTests');
+const { treasuryTests } = require('./tests/treasuryTests');
 
 
 const paramsMatrix = [
@@ -113,6 +115,18 @@ describe('Testing the vesting claim tests without delegation', () => {
 describe('Testing the multi claim tests', () => {
   paramsMatrix.forEach((params) => {
     multiClaimTests(params);
+  });
+})
+
+describe('Testing the multiple claim and delegation tests', () => {
+  paramsMatrix.forEach((params) => {
+    multiClaimDelegateTests(params);
+  });
+})
+
+describe('Testing the treasury functions and fee collection', () => {
+  paramsMatrix.forEach((params) => {
+    treasuryTests(params);
   });
 })
 

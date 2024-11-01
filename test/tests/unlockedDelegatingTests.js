@@ -9,7 +9,7 @@ const { v4: uuidv4, parse: uuidParse } = require('uuid');
 
 const unlockedDelegatingTests = (params) => {
   let deployed, dao, a, b, c, d, e, token, claimContract, tokenDomain, claimDomain;
-  let amount, campaign, claimA, claimB, claimC, claimD, claimE, id;
+  let amount, campaign, claimA, claimB, claimC, claimD, claimE, id, treasury, feeAmount;
   it(`DAO creates an unlocked claim campaign`, async () => {
     deployed = await setup(params.decimals);
     dao = deployed.dao;
@@ -18,6 +18,8 @@ const unlockedDelegatingTests = (params) => {
     c = deployed.c;
     d = deployed.d;
     e = deployed.e;
+    treasury = deployed.treasury;
+    feeAmount = BigInt(7) * BigInt(10 ** 15);
     token = deployed.token;
     tokenDomain = deployed.tokenDomain;
     claimDomain = deployed.claimDomain;
@@ -64,12 +66,16 @@ const unlockedDelegatingTests = (params) => {
       root,
       delegating: true,
     };
-    await expect(claimContract.createUnlockedCampaign(id, campaign, BigInt(treevalues.length))).to.emit(
+    let treasuryBalance = BigInt(await ethers.provider.getBalance(treasury.address));
+    await expect(claimContract.createUnlockedCampaign(id, campaign, BigInt(treevalues.length), {value: feeAmount})).to.emit(
       claimContract,
       'CampaignStarted'
     );
     expect(await token.balanceOf(claimContract.target)).to.eq(amount);
     expect(await claimContract.usedIds(id)).to.eq(true);
+    expect(await ethers.provider.getBalance(claimContract.target)).to.eq(0);
+    let paidTreasury = BigInt(await ethers.provider.getBalance(treasury.address));
+    expect(paidTreasury).to.eq(treasuryBalance + feeAmount);
   });
   it('user A claims their own tokens from their own wallet and self delegates', async () => {
     let proof = getProof('./test/trees/tree.json', a.address);
@@ -90,10 +96,14 @@ const unlockedDelegatingTests = (params) => {
       r: delegationSignature.r,
       s: delegationSignature.s,
     };
-    const tx = await claimContract.connect(a).claimAndDelegate(id, proof, claimA, delegatee, delegationSig);
+    let treasuryBalance = BigInt(await ethers.provider.getBalance(treasury.address));
+    const tx = await claimContract.connect(a).claimAndDelegate(id, proof, claimA, delegatee, delegationSig, {value: feeAmount});
     expect(await token.balanceOf(a.address)).to.eq(claimA);
     expect(await token.delegates(a.address)).to.eq(delegatee);
     expect(await claimContract.claimed(id, a.address)).to.eq(true);
+    expect(await ethers.provider.getBalance(claimContract.target)).to.eq(0);
+    let paidTreasury = BigInt(await ethers.provider.getBalance(treasury.address));
+    expect(paidTreasury).to.eq(treasuryBalance + feeAmount);
   });
   it('user B claims their own tokens and delegates to user C', async () => {
     let proof = getProof('./test/trees/tree.json', b.address);

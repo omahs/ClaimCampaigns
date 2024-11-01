@@ -9,7 +9,7 @@ const { v4: uuidv4, parse: uuidParse } = require('uuid');
 
 const multiClaimTests = (params) => {
   let deployed, dao, a, b, c, d, e, token, claimContract, lockup, vesting, claimDomain;
-  let start, cliff, period, periods, end;
+  let start, cliff, period, periods, end, treasury, feeAmount;
   let amount,
     root,
     campaign,
@@ -32,6 +32,8 @@ const multiClaimTests = (params) => {
     c = deployed.c;
     d = deployed.d;
     e = deployed.e;
+    treasury = deployed.treasury;
+    feeAmount = BigInt(7) * BigInt(10 ** 15);
     token = deployed.token;
     claimContract = deployed.claimContract;
     lockup = deployed.lockup;
@@ -114,7 +116,11 @@ const multiClaimTests = (params) => {
     thirdId = uuidParse(uuid);
     await claimContract.createUnlockedCampaign(thirdId, campaign, BigInt(params.totalRecipients));
     let proof = getProof('./test/trees/tree.json', b.address);
-    let tx = await claimContract.connect(b).claimMultiple([firstId, thirdId], [proof, proof], [claimB, claimB]);
+    let treasuryBalance = BigInt(await ethers.provider.getBalance(treasury.address));
+    let tx = await claimContract.connect(b).claimMultiple([firstId, thirdId], [proof, proof], [claimB, claimB], {value: feeAmount});
+    expect(await ethers.provider.getBalance(claimContract.target)).to.eq(0);
+    let paidTreasury = BigInt(await ethers.provider.getBalance(treasury.address));
+    expect(paidTreasury).to.eq(treasuryBalance + feeAmount);
   });
   it('DAO creates a vesting campaign and user is able to claim from three campaigns', async () => {
     claimLockup.tokenLocker = vesting.target;

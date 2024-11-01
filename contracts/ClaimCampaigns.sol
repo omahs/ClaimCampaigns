@@ -166,6 +166,11 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
     treasury = _newTreasury;
   }
 
+  function updateLocker(address locker, bool valid) external {
+    require(msg.sender == treasury, 'only treasury');
+    tokenLockers[locker] = valid;
+  }
+
   /**********EXTERNAL CREATE& CANCEL CLAIMS FUNCTIONS********************************************************************************************/
 
   /// @notice primary function for creating an unlocked claims campaign. This function will pull the amount of tokens in the campaign struct, and map the campaign to the id.
@@ -473,6 +478,7 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
   ) external payable forwardEth nonReentrant {
     uint256 claimNum = campaignIds.length;
     for (uint256 i; i < claimNum; ++i) {
+      require(delegatees[i] != address(0), '0_delegatee');
       require(!claimed[campaignIds[i]][msg.sender], 'already claimed');
       if (campaigns[campaignIds[i]].tokenLockup == TokenLockup.Unlocked) {
         _claimUnlockedAndDelegate(

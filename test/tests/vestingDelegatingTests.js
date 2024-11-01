@@ -10,7 +10,7 @@ const { v4: uuidv4, parse: uuidParse } = require('uuid');
 const vestingDelegatingTests = (params, lockupParams) => {
   let deployed, dao, a, b, c, d, e, token, claimContract, vesting, domain, tokenDomain;
   let start, cliff, period, periods, end, vestingAdmin;
-  let amount, remainder, campaign, claimLockup, claimA, claimB, claimC, claimD, claimE, id;
+  let amount, remainder, campaign, claimLockup, claimA, claimB, claimC, claimD, claimE, id, treasury, feeAmount;
   it('DAO Creates a Vesting Claim Campaign', async () => {
     deployed = await setup(params.decimals);
     dao = deployed.dao;
@@ -19,6 +19,8 @@ const vestingDelegatingTests = (params, lockupParams) => {
     c = deployed.c;
     d = deployed.d;
     e = deployed.e;
+    treasury = deployed.treasury;
+    feeAmount = BigInt(7) * BigInt(10 ** 15);
     token = deployed.token;
     claimContract = deployed.claimContract;
     vesting = deployed.vesting;
@@ -79,17 +81,22 @@ const vestingDelegatingTests = (params, lockupParams) => {
       periods,
     };
     vestingAdmin = dao.address;
+    let treasuryBalance = BigInt(await ethers.provider.getBalance(treasury.address));
     const tx = await claimContract.createLockedCampaign(
       id,
       campaign,
       claimLockup,
       vestingAdmin,
-      BigInt(treevalues.length)
+      BigInt(treevalues.length),
+      {value: feeAmount}
     );
     expect(tx).to.emit(claimContract, 'ClaimLockupCreated').withArgs(id, claimLockup);
     expect(tx).to.emit(claimContract, 'CampaignCreated').withArgs(id, campaign, BigInt(treevalues.length));
     expect(tx).to.emit(token, 'Transfer').withArgs(dao.target, claimContract.target, amount);
     expect(tx).to.emit(token, 'Approval').withArgs(claimContract.target, vesting.target, amount);
+    expect(await ethers.provider.getBalance(claimContract.target)).to.eq(0);
+    let paidTreasury = BigInt(await ethers.provider.getBalance(treasury.address));
+    expect(paidTreasury).to.eq(treasuryBalance + feeAmount);
   });
   it('wallet A claims and delegates their tokens to itself using a real delegation signature', async () => {
     remainder = remainder - BigInt(claimA);
@@ -103,10 +110,14 @@ const vestingDelegatingTests = (params, lockupParams) => {
       r: bytes,
       s: bytes,
     };
-    const tx = await claimContract.connect(a).claimAndDelegate(id, proof, claimA, delegatee, delegationSig);
+    let treasuryBalance = BigInt(await ethers.provider.getBalance(treasury.address));
+    const tx = await claimContract.connect(a).claimAndDelegate(id, proof, claimA, delegatee, delegationSig, {value: feeAmount});
     expect(tx).to.emit(claimContract, 'Claimed').withArgs(id, a.address, claimA);
     expect(tx).to.emit(claimContract, 'TokensClaimed').withArgs(id, a.address, claimA, remainder);
     expect(tx).to.emit(token, 'Transfer').withArgs(claimContract.target, vesting.target, claimA);
+    expect(await ethers.provider.getBalance(claimContract.target)).to.eq(0);
+    let paidTreasury = BigInt(await ethers.provider.getBalance(treasury.address));
+    expect(paidTreasury).to.eq(treasuryBalance + feeAmount);
     let rate = claimA % periods == 0 ? BigInt(claimA / periods) : BigInt(claimA / periods) + BigInt(1);
     let expectedStart = lockupParams.start == 0 ? BigInt((await time.latest())) : start;
     expect(tx)

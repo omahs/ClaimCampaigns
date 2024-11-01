@@ -3,7 +3,7 @@ const { ethers } = require('hardhat');
 const C = require('./constants');
 
 module.exports = async (tokenDecimals) => {
-    const [dao, a, b, c, d, e] = await ethers.getSigners();
+    const [dao, a, b, c, d, e, treasury] = await ethers.getSigners();
     const Lockup = await ethers.getContractFactory('VotingTokenLockupPlans');
     const Vesting = await ethers.getContractFactory('VotingTokenVestingPlans');
     const Token = await ethers.getContractFactory('Token');
@@ -20,7 +20,7 @@ module.exports = async (tokenDecimals) => {
     await nvToken.waitForDeployment();
     const claimName = 'DelegatedClaimCampaigns'
     const version = '1';
-    const claimContract = await ClaimContract.deploy(dao.address, claimName, version, [lockup.target, vesting.target]);
+    const claimContract = await ClaimContract.deploy(treasury.address, claimName, version, [lockup.target, vesting.target]);
     await claimContract.waitForDeployment();
     await token.approve(claimContract.target, supply);
     const tokenDomain = {
@@ -42,6 +42,7 @@ module.exports = async (tokenDecimals) => {
         c,
         d,
         e,
+        treasury,
         lockup,
         vesting,
         token,
