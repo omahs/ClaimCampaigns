@@ -19,7 +19,7 @@ import '@openzeppelin/contracts/utils/Nonces.sol';
 /// @notice This tool allows token projects to safely, securely and efficiently distribute your tokens in large scale to your community, whereby they can claim them based on your criteria of wallet address and amount.
 
 contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
-  address payable private treasury;
+  address payable public treasury;
   /// @dev this claimhash is used for EIP712 signing of the claim functions
   bytes32 private constant CLAIM_TYPEHASH =
     keccak256('Claim(bytes16 campaignId,address claimer,uint256 claimAmount,uint256 nonce,uint256 expiry)');
@@ -35,6 +35,7 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
     );
 
   mapping(address => bool) public tokenLockers;
+  bool public lockWhitelistUpdateable = true;
 
   /// @dev an enum defining the different types of claims to be made
   /// @param Unlocked means that tokens claimed are liquid and not locked at all
@@ -130,6 +131,8 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
     uint256 amountRemaining
   );
   event Claimed(address indexed recipient, uint256 indexed amount);
+  event TreasuryChanged(address indexed oldTreasury, address indexed newTreasury);
+  event LockerWhitelistUpdated(address indexed locker, bool indexed valid);
 
   /// @notice the constructor of the contract, which sets the name and version of the EIP712 contract
   constructor(
@@ -161,14 +164,24 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
     forwardFunds();
   }
 
-  function changeTreasury(address payable _newTreasury) external {
+  modifier onlyTreasury() {
     require(msg.sender == treasury, 'only treasury');
-    treasury = _newTreasury;
+    _;
   }
 
-  function updateLocker(address locker, bool valid) external {
-    require(msg.sender == treasury, 'only treasury');
+  function changeTreasury(address payable _newTreasury) external onlyTreasury {
+    treasury = _newTreasury;
+    emit TreasuryChanged(msg.sender, _newTreasury);
+  }
+
+  function updateLocker(address locker, bool valid) external onlyTreasury {
+    require(lockWhitelistUpdateable, 'locked');
     tokenLockers[locker] = valid;
+    emit LockerWhitelistUpdated(locker, valid);
+  }
+
+  function toggleOffLockerWhitelist() external onlyTreasury {
+    lockWhitelistUpdateable = false;
   }
 
   /**********EXTERNAL CREATE& CANCEL CLAIMS FUNCTIONS********************************************************************************************/

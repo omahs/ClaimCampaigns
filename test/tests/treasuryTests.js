@@ -178,6 +178,11 @@ const treasuryTests = (params) => {
       let paidTreasury = BigInt(await ethers.provider.getBalance(treasury.address));
       expect(paidTreasury).to.eq(treasuryBalance + feeAmount);
   });
+  it('treasury toggles off the whitelist feature and no lockers can be changed', async () => {
+    await expect(claimContract.connect(a).toggleOffLockerWhitelist()).to.be.revertedWith('only treasury');
+    await claimContract.connect(treasury).toggleOffLockerWhitelist();
+    await expect(claimContract.connect(treasury).updateLocker(lockup.target, false)).to.be.revertedWith('locked');
+  })
 };
 
 
