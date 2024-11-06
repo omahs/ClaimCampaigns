@@ -35,7 +35,6 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
     );
 
   mapping(address => bool) public tokenLockers;
-  bool public lockWhitelistUpdateable = true;
 
   /// @dev an enum defining the different types of claims to be made
   /// @param Unlocked means that tokens claimed are liquid and not locked at all
@@ -132,7 +131,6 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
   );
   event Claimed(address indexed recipient, uint256 indexed amount);
   event TreasuryChanged(address indexed oldTreasury, address indexed newTreasury);
-  event LockerWhitelistUpdated(address indexed locker, bool indexed valid);
 
   /// @notice the constructor of the contract, which sets the name and version of the EIP712 contract
   constructor(
@@ -164,25 +162,12 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
     forwardFunds();
   }
 
-  modifier onlyTreasury() {
+  function changeTreasury(address payable _newTreasury) external {
     require(msg.sender == treasury, 'only treasury');
-    _;
-  }
-
-  function changeTreasury(address payable _newTreasury) external onlyTreasury {
     treasury = _newTreasury;
     emit TreasuryChanged(msg.sender, _newTreasury);
   }
 
-  function updateLocker(address locker, bool valid) external onlyTreasury {
-    require(lockWhitelistUpdateable, 'locked');
-    tokenLockers[locker] = valid;
-    emit LockerWhitelistUpdated(locker, valid);
-  }
-
-  function toggleOffLockerWhitelist() external onlyTreasury {
-    lockWhitelistUpdateable = false;
-  }
 
   /**********EXTERNAL CREATE& CANCEL CLAIMS FUNCTIONS********************************************************************************************/
 
