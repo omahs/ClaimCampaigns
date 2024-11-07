@@ -139,8 +139,10 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
     string memory version,
     address[] memory _tokenLockups
   ) EIP712(name, version) {
+    require(_treasury != address(0), '0_treasury');
     treasury = _treasury;
-    for (uint256 i = 0; i < _tokenLockups.length; i++) {
+    for (uint256 i; i < _tokenLockups.length; i++) {
+      require(_tokenLockups[i] != address(0), '0address');
       tokenLockers[_tokenLockups[i]] = true;
     }
   }
@@ -164,6 +166,7 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
 
   function changeTreasury(address payable _newTreasury) external {
     require(msg.sender == treasury, 'only treasury');
+    require(_newTreasury != address(0), '0_treasury');
     treasury = _newTreasury;
     emit TreasuryChanged(msg.sender, _newTreasury);
   }
@@ -242,7 +245,7 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
   /// @notice this function allows the campaign manager to cancel an ongoing campaign at anytime. Cancelling a campaign will return any unclaimed tokens, and then prevent anyone from claiming additional tokens
   /// @param campaignIds is the id of the campaign to be cancelled
   function cancelCampaigns(bytes16[] memory campaignIds) external nonReentrant {
-    for (uint256 i = 0; i < campaignIds.length; i++) {
+    for (uint256 i; i < campaignIds.length; i++) {
       Campaign memory campaign = campaigns[campaignIds[i]];
       require(campaign.manager == msg.sender, '!manager');
       require(_campaignBlockNumber[campaignIds[i]] < block.number, 'same block');
@@ -691,7 +694,7 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
         c.period
       );
       IDelegatePlan(c.tokenLocker).delegate(tokenId, delegatee);
-      IERC721(c.tokenLocker).transferFrom(address(this), claimer, tokenId);
+      IERC721(c.tokenLocker).safeTransferFrom(address(this), claimer, tokenId);
     } else {
       tokenId = IVestingPlans(c.tokenLocker).createPlan(
         address(this),
