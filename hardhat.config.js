@@ -23,7 +23,7 @@ module.exports = {
   networks: {
     sepolia: {
       url: process.env.SEPOLIA_URL,
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY, process.env.TOKEN_DEPLOYER],
     },
     holesky: {
       url: process.env.HOLESKY_URL,
@@ -79,10 +79,6 @@ module.exports = {
       url: process.env.FEVM_URL,
       accounts: [process.env.DEPLOYER_PRIVATE_KEY, process.env.TOKEN_DEPLOYER],
     },
-    fevmTestnet: {
-      url: process.env.FEVM_TESTNET_URL,
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY, process.env.TOKEN_DEPLOYER],
-    },
     peaq: {
       url: process.env.PEAQ_URL,
       accounts: [process.env.DEPLOYER_PRIVATE_KEY, process.env.TOKEN_DEPLOYER],
@@ -91,9 +87,29 @@ module.exports = {
       url: process.env.IMMUTABLE_URL,
       accounts: [process.env.DEPLOYER_PRIVATE_KEY, process.env.TOKEN_DEPLOYER],
     },
-    immutableTestnet: {
-      url: process.env.IMMUTABLE_TESTNET_URL,
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
+    celo: {
+      url: process.env.CELO_URL,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY, process.env.TOKEN_DEPLOYER],
+    },
+    scroll: {
+      url: process.env.SCROLL_URL,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY, process.env.TOKEN_DEPLOYER],
+    },
+    avalanche: {
+      url: process.env.AVALANCHE_URL,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY, process.env.TOKEN_DEPLOYER],
+    },
+    opera: {
+      url: process.env.FANTOM_URL,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY, process.env.TOKEN_DEPLOYER],
+    },
+    gnosis: {
+      url: process.env.GNOSIS_URL,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY, process.env.TOKEN_DEPLOYER],
+    },
+    blast: {
+      url: process.env.BLAST_URL,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY, process.env.TOKEN_DEPLOYER],
     },
   },
   etherscan: {
@@ -179,14 +195,37 @@ module.exports = {
         },
       },
       {
-        testnet: 'immutableTestnet',
-        chainId: 13473,
+        network: 'celo',
+        chainId: 42220,
         urls: {
-          apiURL: 'https://explorer.testnet.immutable.com/api',
-          browserURL: 'https://explorer.testnet.immutable.com',
+          apiURL: 'https://api.celoscan.io/api',
+          browserURL: 'https://celoscan.io/',
         },
-        apiKey: 'hedgeyfucks'
       },
+      {
+        network: 'scroll',
+        chainId: 534352,
+        urls: {
+          apiURL: 'https://api.scrollscan.com/api',
+          browserURL: 'https://scrollscan.com/',
+        },
+      },
+      {
+        network: 'gnosis',
+        chainId: 100,
+        urls: {
+          apiURL: 'https://api.gnosisscan.io/api',
+          browserURL: 'https://gnosisscan.io/',
+        },
+      },
+      {
+        network: 'blast',
+        chainId: 81457,
+        urls: {
+          apiURL: 'https://api.blastscan.io/api',
+          browserURL: 'https://blastscan.io/',
+        }
+      }
     ],
     apiKey: {
       sepolia: process.env.ETHERSCAN_APIKEY,
@@ -205,7 +244,12 @@ module.exports = {
       fevm: process.env.FEVM_APIKEY,
       peaq: process.env.PEAQ_APIKEY,
       immutable: process.env.IMMUTABLE_APIKEY,
-      immutableTestnet: 'hedgeyfucks',
+      celo: process.env.CELO_APIKEY,
+      scroll: process.env.SCROLL_APIKEY,
+      avalanche: process.env.AVALANCHE_APIKEY,
+      opera: process.env.FANTOM_APIKEY,
+      gnosis: process.env.GNOSIS_APIKEY,
+      blast: process.env.BLAST_APIKEY,
     },
   },
 };

@@ -21,9 +21,29 @@ To deploy the ClaimCampaigns contract create a .env file in the main directory w
 npx hardhat run scripts/deploy.js --network <network-name>
 ```
 
-## Testnet Deployments
-  
+## Testnet Deployments   
+   
+- Holesky: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
+- Sepolia: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
 
-## Mainnet Deployments
+
+## Mainnet Deployments   
+     
+- Ethereum Mainnet: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
+- Arbiturm One: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
+- Polygon: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
+- BNB Smart Chain: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
+- Optimism: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
+- BASE: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
+- Linea-mainnet: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
+- Mode Network: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
+- Zora: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
+- IOTA EVM: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
+- Mantle Network: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
+- Celo: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
+- Scroll: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
+- Avalanche: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
+- Gnosis: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
+- Blast: `0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6`  
 
 

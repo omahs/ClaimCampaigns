@@ -1,10 +1,11 @@
 const { ethers, run } = require('hardhat');
 const { setTimeout } = require('timers/promises');
+const networkData = require('./networkData');
 
 async function deploy(treasury, lockers) {
     const Claims = await ethers.getContractFactory('ClaimCampaigns');
     const claims = await (await Claims.deploy(treasury, 'ClaimCampaigns', '1', lockers)).waitForDeployment();
-    // const claims = Claims.attach('0x5Ae97e4770b7034C7Ca99Ab7edC26a18a23CB412');
+    // const claims = Claims.attach('0x8A2725a6f04816A5274dDD9FEaDd3bd0C253C1A6');
     console.log('Claims deployed to:', claims.target);
     await setTimeout(15000);
     await run('verify:verify', {
@@ -13,13 +14,27 @@ async function deploy(treasury, lockers) {
     });
 }
 
-const treasury = '0x878D639400C127742EE53e2871CED43119f70271';
-const vesting = '0x2CDE9919e81b20B4B33DD562a48a84b54C48F00C';
-const votingVesting = '0x1bb64AF7FE05fc69c740609267d2AbE3e119Ef82';
-const tokenLockup = '0x1961A23409CA59EEDCA6a99c97E4087DaD752486';
-const votingLockup = '0xA600EC7Db69DFCD21f19face5B209a55EAb7a7C0';
-const boundTokenLockups = '0x06B6D0AbD9dfC7F04F478B089FD89d4107723264';
-const boundVotingTokenLockups = '0x38E74A3DA3bd27dd581d5948ba19F0f684a5272f';
 
-const lockers = [vesting, votingVesting, tokenLockup, votingLockup, boundTokenLockups, boundVotingTokenLockups];
-deploy(treasury, lockers);
+async function deployContract() {
+    const networkName = (await ethers.provider.getNetwork()).name;
+    console.log(`networkName: ${networkName}`);
+    const network = networkData[networkName];
+    console.log(network);
+    const treasury = network.treasury;
+    const vesting = network.vesting;
+    const votingVesting = network.votingVesting;
+    const tokenLockup = network.tokenLockup;
+    const votingLockup = network.votingLockup;
+    const boundTokenLockups = network.boundTokenLockups;
+    const boundVotingTokenLockups = network.boundVotingTokenLockups;
+    const lockers = [vesting, votingVesting, tokenLockup, votingLockup, boundTokenLockups, boundVotingTokenLockups];
+    if (network.check) {
+        console.log('deploying contract');
+        await deploy(treasury, lockers);
+    } else {
+        console.log('something went wrong');
+    }
+    
+}
+
+deployContract();
