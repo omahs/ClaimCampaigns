@@ -201,7 +201,7 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
     emit CampaignStarted(id, campaign, totalClaimers);
   }
 
-  /// @notice primary function for creating an locked or vesting claims campaign. This function will pull the amount of tokens in the campaign struct, and map the campaign and claimLockup to the id.
+  /// @notice primary function for creating a locked or vesting claims campaign. This function will pull the amount of tokens in the campaign struct, and map the campaign and claimLockup to the id.
   /// additionally it will check that the lockup details are valid, and perform an allowance increase to the contract for when tokens are claimed they can be pulled.
   /// @dev the merkle tree needs to be pre-generated, so that you can upload the root and the uuid for the function
   /// @param id is the uuid or CID of the file that stores the merkle tree
@@ -242,7 +242,7 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
     emit CampaignStarted(id, campaign, totalClaimers);
   }
 
-  /// @notice this function allows the campaign manager to cancel an ongoing campaign at anytime. Cancelling a campaign will return any unclaimed tokens, and then prevent anyone from claiming additional tokens
+  /// @notice this function allows the campaign manager to cancel an ongoing campaign at any time. Cancelling a campaign will return any unclaimed tokens, and then prevent anyone from claiming additional tokens
   /// @param campaignIds is the id of the campaign to be cancelled
   function cancelCampaigns(bytes16[] memory campaignIds) external nonReentrant {
     for (uint256 i; i < campaignIds.length; i++) {
@@ -383,7 +383,7 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
   /// @param claimAmount is the amount of tokens to claim
   /// @param delegatee is the address of the wallet to delegate the claim to
   /// @param delegationSignature is a signature required Only if the user is claiming unlocked tokens, used to call the delegateWithSig function on the ERC20Votes token contract
-  /// @dev the delegation signature is not require and empty entries can be passed in if the campaign is locked or vesting
+  /// @dev the delegation signature is not required and empty entries can be passed in if the campaign is locked or vesting
   function claimAndDelegate(
     bytes16 campaignId,
     bytes32[] memory proof,
@@ -419,7 +419,7 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
   /// @param claimSignature is the signature provided by the beneficial owner (the claimer) to the user of the function to claim on their behalf
   /// @param delegatee is the address of the wallet to delegate the claim to
   /// @param delegationSignature is a signature required Only if the user is claiming unlocked tokens, used to call the delegateWithSig function on the ERC20Votes token contract
-  /// @dev the delegation signature is not require and empty entries can be passed in if the campaign is locked or vesting
+  /// @dev the delegation signature is not required and empty entries can be passed in if the campaign is locked or vesting
   function claimAndDelegateWithSig(
     bytes16 campaignId,
     bytes32[] memory proof,
@@ -509,7 +509,7 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
   /// @param claimAmount is the amount of tokens to claim
   /// @dev the function assumes that signature validation has already been completed, so no need to check that the one claiming is the claimer - as tokens will be delivered to the claimer regardless
   /// the function checks that the campaign has started, that it has not ended, that the proof is valid with the inputs of root, proof, claimer, and claim amount
-  /// it checks that the campaign is funded - though this require statement should never be triggered its here as an extra layer of security
+  /// it checks that the campaign is funded - though this require statement should never be triggered it's here as an extra layer of security
   /// it checks that the token lockup type is unlocked
   /// then the function will set the claimed mapping to true so that the claimer cannot claim again
   /// it will reduce the amount of tokens in the campaign by the claim amount
@@ -580,7 +580,7 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
   /// @param claimer is the address of the beneficial owner of the claim
   /// @param claimAmount is the amount of tokens to claim
   /// @dev the function checks that the campaign has started, that it has not ended, that the proof is valid with the inputs of root, proof, claimer, and claim amount
-  /// it checks that the campaign is funded - though this require statement should never be triggered its here as an extra layer of security, and then it reduces the campaign amount by the claim amount
+  /// it checks that the campaign is funded - though this require statement should never be triggered it's here as an extra layer of security, and then it reduces the campaign amount by the claim amount
   /// if the campaign amount is 0, then the campaign is deleted as it is complete and over
   /// the function calculates the rate to be used for the lockup or vesting plan based on the number of periods and the claim amount
   /// then it creates a lockup plan or vesting plan based on the tokenLockup type in the campaign struct
@@ -645,7 +645,7 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
   /// @param claimAmount is the amount of tokens to claim
   /// @param delegatee is the address of the wallet to delegate the claim to
   /// @dev the function checks that the campaign has started, that it has not ended, that the proof is valid with the inputs of root, proof, claimer, and claim amount
-  /// it checks that the campaign is funded - though this require statement should never be triggered its here as an extra layer of security
+  /// it checks that the campaign is funded - though this require statement should never be triggered it's here as an extra layer of security
   /// it checks that the token is an ERC20Votes type token to save gas if it is not
   /// it sets the claimed mapping to true so that the claimer cannot claim again
   /// it reduces the campaign amount by the claim amount
@@ -716,7 +716,7 @@ contract ClaimCampaigns is ERC721Holder, ReentrancyGuard, EIP712, Nonces {
     emit LockedTokensClaimed(campaignId, claimer, tokenId, claimAmount, campaigns[campaignId].amount);
   }
 
-  /// @dev the internal verify function from the open zepellin library.
+  /// @dev the internal verify function from the open zeppelin library.
   /// this function inputs the root, proof, wallet address of the claimer, and amount of tokens, and then computes the validity of the leaf with the proof and root.
   /// @param root is the root of the merkle tree
   /// @param proof is the proof for the specific leaf
